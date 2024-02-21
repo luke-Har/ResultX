@@ -1,21 +1,27 @@
-﻿namespace ResultMonad
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ResultMonad
 {
     /// <summary>
-    /// Internal value has copy semantics, relevant for structs
+    /// Internal value has reference semantics, relevant for structs
     /// </summary>
     /// <typeparam name="TValue"></typeparam>
     /// <typeparam name="TError">Potential error</typeparam>
-    public readonly struct Result<TValue, TError>
+    public readonly ref struct RefResult<TValue, TError>
         where TValue : notnull
         where TError : struct, IResultError<TError>
     {
-        public delegate U MatchOk<T, U>(T item) where T : TValue;
+        public delegate U MatchOk<T, U>(ref T item) where T : TValue;
         public delegate U MatchError<T, U>(T item) where T : struct, IResultError<TError>;
 
-        public delegate void MatchOkNoRet<T>(T item) where T : TValue;
+        public delegate void MatchOkNoRet<T>(ref T item) where T : TValue;
         public delegate void MatchErrorNoRet<T>(T item) where T : struct, IResultError<TError>;
 
-        readonly TValue Value;
+        readonly ref TValue Value;
         readonly TError Error;
         public readonly bool Faulted;
 
@@ -23,17 +29,17 @@
         /// A value being given means result is successfull
         /// </summary>
         /// <param name="value"></param>
-        public Result(TValue value)
+        public RefResult(ref TValue value)
         {
             Faulted = false;
             Error = default;
-            Value = value;
+            Value = ref value;
         }
 
         /// <summary>
         /// Parameterless constructor is used to show an error (TError) has occured
         /// </summary>
-        public Result()
+        public RefResult()
         {
             Faulted = true;
             Error = TError.ErrorInstance;
@@ -47,7 +53,7 @@
                 case true:
                     return ErrPath.Invoke(Error);
                 case false:
-                    return OkPath.Invoke(Value);
+                    return OkPath.Invoke(ref Value);
             }
         }
 
@@ -59,7 +65,7 @@
                     ErrPath.Invoke(Error);
                     break;
                 case false:
-                    OkPath.Invoke(Value);
+                    OkPath.Invoke(ref Value);
                     break;
             }
         }
@@ -68,9 +74,9 @@
         /// Trusts that the value is valid
         /// </summary>
         /// <returns></returns>
-        public TValue UnWrap()
+        public ref TValue UnWrap()
         {
-            return Value;
+            return ref Value;
         }
 
         public override string ToString()
@@ -78,20 +84,13 @@
             return Faulted ? TError.ErrorInstance.Message : Value.ToString()!;
         }
 
-        public static Result<TValue, TError> Ok(TValue value)
+        public static RefResult<TValue, TError> Ok(ref TValue value)
         {
-            return new Result<TValue, TError>(value);
+            return new RefResult<TValue, TError>(ref value);
         }
-        public static Result<TValue, TError> Err()
+        public static RefResult<TValue, TError> Err()
         {
-            return new Result<TValue, TError>();
+            return new RefResult<TValue, TError>();
         }
-    }
-
-    public interface IResultError<T> where T : struct
-    {
-        public abstract string Message { get; }
-        public static abstract T ErrorInstance { get; }
-
     }
 }
