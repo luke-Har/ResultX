@@ -7,13 +7,13 @@
     /// <typeparam name="TError">Potential error</typeparam>
     public readonly struct Result<TValue, TError>
         where TValue : notnull
-        where TError : struct, IResultError<TError>
+        where TError : System.Enum
     {
         public delegate U MatchOk<T, U>(T item) where T : TValue;
-        public delegate U MatchError<T, U>(T item) where T : struct, IResultError<TError>;
+        public delegate U MatchError<T, U>(T item) where T : System.Enum;
 
         public delegate void MatchOkNoRet<T>(T item) where T : TValue;
-        public delegate void MatchErrorNoRet<T>(T item) where T : struct, IResultError<TError>;
+        public delegate void MatchErrorNoRet<T>(T item) where T : System.Enum;
 
         readonly TValue Value;
         readonly TError Error;
@@ -26,17 +26,16 @@
         public Result(TValue value)
         {
             Faulted = false;
-            Error = default;
             Value = value;
         }
 
         /// <summary>
         /// Parameterless constructor is used to show an error (TError) has occured
         /// </summary>
-        public Result()
+        public Result(TError error)
         {
             Faulted = true;
-            Error = TError.ErrorInstance;
+            Error = error;
         }
 
 
@@ -73,25 +72,30 @@
             return Value;
         }
 
+        /// <summary>
+        /// Functionally the same as UnWrap, but will throw if there is an error.
+        /// </summary>
+        /// <param name="errorMessage"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public TValue Expect(string errorMessage)
+        {
+            if(Faulted) throw new Exception(errorMessage);
+            return Value;
+        }
+
         public override string ToString()
         {
-            return Faulted ? TError.ErrorInstance.Message : Value.ToString()!;
+            return Faulted ? Error.ToString() : Value.ToString()!;
         }
 
         public static Result<TValue, TError> Ok(TValue value)
         {
             return new Result<TValue, TError>(value);
         }
-        public static Result<TValue, TError> Err()
+        public static Result<TValue, TError> Err(TError error)
         {
-            return new Result<TValue, TError>();
+            return new Result<TValue, TError>(error);
         }
-    }
-
-    public interface IResultError<T> where T : struct
-    {
-        public abstract string Message { get; }
-        public static abstract T ErrorInstance { get; }
-
     }
 }
