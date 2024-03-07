@@ -30,7 +30,7 @@
         }
 
         /// <summary>
-        /// Parameterless constructor is used to show an error (TError) has occured
+        /// Used to show an error (TError) has occured
         /// </summary>
         public Result(TError error)
         {
@@ -38,7 +38,22 @@
             Error = error;
         }
 
+        /// <summary>
+        /// Will set state to default error
+        /// </summary>
+        public Result() 
+        {
+            Faulted = true;
+            Error = default!;
+        }
 
+        /// <summary>
+        /// Used to define two code paths that can be taken, both of which return a value.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="OkPath"></param>
+        /// <param name="ErrPath"></param>
+        /// <returns></returns>
         public T Match<T>(MatchOk<TValue, T> OkPath, MatchError<TError, T> ErrPath)
         {
             switch (Faulted)
@@ -50,6 +65,13 @@
             }
         }
 
+        /// <summary>
+        /// Used to define two code paths that can be taken.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="OkPath"></param>
+        /// <param name="ErrPath"></param>
+        /// <returns></returns>
         public void Match(MatchOkNoRet<TValue> OkPath, MatchErrorNoRet<TError> ErrPath)
         {
             switch (Faulted)
