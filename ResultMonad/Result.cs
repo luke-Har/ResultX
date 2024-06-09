@@ -5,7 +5,7 @@
     /// </summary>
     /// <typeparam name="TValue"></typeparam>
     /// <typeparam name="TError">Potential error</typeparam>
-    public readonly struct Result<TValue, TError>
+    public readonly record struct Result<TValue, TError>
         where TValue : notnull
         where TError : System.Enum
     {
@@ -17,7 +17,7 @@
 
         readonly TValue Value;
         readonly TError Error;
-        public readonly bool Faulted;
+        readonly bool Faulted;
 
         /// <summary>
         /// A value being given means result is successfull
