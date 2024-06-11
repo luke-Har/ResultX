@@ -1,4 +1,6 @@
-﻿namespace ResultMonad
+﻿using System.Reflection.Metadata.Ecma335;
+
+namespace ResultMonad
 {
     /// <summary>
     /// Internal value has copy semantics, relevant for structs
@@ -9,42 +11,26 @@
         where TValue : notnull
         where TError : System.Enum
     {
-        public delegate U MatchOk<T, U>(T item) where T : TValue;
-        public delegate U MatchError<T, U>(T item) where T : System.Enum;
-
-        public delegate void MatchOkNoRet<T>(T item) where T : TValue;
-        public delegate void MatchErrorNoRet<T>(T item) where T : System.Enum;
-
-        readonly TValue Value;
-        readonly TError Error;
-        readonly bool Faulted;
+        readonly UnionX.Union<TValue, TError> Value;
+        //readonly TValue Value;
+        //readonly TError Error;
+        //readonly bool Faulted;
 
         /// <summary>
         /// A value being given means result is successfull
         /// </summary>
         /// <param name="value"></param>
-        public Result(TValue value)
+        private Result(TValue value)
         {
-            Faulted = false;
-            Value = value;
+            Value = new(value);
         }
 
         /// <summary>
         /// Used to show an error (TError) has occured
         /// </summary>
-        public Result(TError error)
+        private Result(TError error)
         {
-            Faulted = true;
-            Error = error;
-        }
-
-        /// <summary>
-        /// Will set state to default error
-        /// </summary>
-        public Result() 
-        {
-            Faulted = true;
-            Error = default!;
+            Value = new(error);
         }
 
         /// <summary>
@@ -54,35 +40,9 @@
         /// <param name="OkPath"></param>
         /// <param name="ErrPath"></param>
         /// <returns></returns>
-        public T Match<T>(MatchOk<TValue, T> OkPath, MatchError<TError, T> ErrPath)
+        public T Match<T>(Func<TValue, T> OkPath, Func<TError, T> ErrPath)
         {
-            switch (Faulted)
-            {
-                case true:
-                    return ErrPath.Invoke(Error);
-                case false:
-                    return OkPath.Invoke(Value);
-            }
-        }
-
-        /// <summary>
-        /// Used to define two code paths that can be taken.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="OkPath"></param>
-        /// <param name="ErrPath"></param>
-        /// <returns></returns>
-        public void Match(MatchOkNoRet<TValue> OkPath, MatchErrorNoRet<TError> ErrPath)
-        {
-            switch (Faulted)
-            {
-                case true:
-                    ErrPath.Invoke(Error);
-                    break;
-                case false:
-                    OkPath.Invoke(Value);
-                    break;
-            }
+            return Value.Match(OkPath, ErrPath);
         }
 
         /// <summary>
@@ -91,7 +51,9 @@
         /// <returns></returns>
         public TValue UnWrap()
         {
-            return Value;
+            return Value.Match(
+                value => value,
+                err => throw new ResultNoValueException());
         }
 
         /// <summary>
@@ -102,13 +64,14 @@
         /// <exception cref="Exception"></exception>
         public TValue Expect(string errorMessage)
         {
-            if(Faulted) throw new Exception(errorMessage);
-            return Value;
+            return Value.Match(
+                value => value,
+                err => throw new Exception(errorMessage));
         }
 
         public override string ToString()
         {
-            return Faulted ? Error.ToString() : Value.ToString()!;
+            return Value.Match(value => value.ToString(), err => err.ToString())!;
         }
 
         public static Result<TValue, TError> Ok(TValue value)
