@@ -3,7 +3,7 @@
 namespace ResultMonad
 {
     /// <summary>
-    /// Internal value has copy semantics, relevant for structs
+    /// A value that can either contain a value or error
     /// </summary>
     /// <typeparam name="TValue"></typeparam>
     /// <typeparam name="TError">Potential error</typeparam>
@@ -12,12 +12,8 @@ namespace ResultMonad
         where TError : System.Enum
     {
         readonly UnionX.Union<TValue, TError> Value;
-        //readonly TValue Value;
-        //readonly TError Error;
-        //readonly bool Faulted;
-
         /// <summary>
-        /// A value being given means result is successfull
+        /// A value being given means result is successful
         /// </summary>
         /// <param name="value"></param>
         private Result(TValue value)
@@ -34,7 +30,7 @@ namespace ResultMonad
         }
 
         /// <summary>
-        /// Used to define two code paths that can be taken, both of which return a value.
+        /// Used to define two code paths that can be taken, both of which return a value
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="OkPath"></param>
@@ -46,7 +42,7 @@ namespace ResultMonad
         }
 
         /// <summary>
-        /// Trusts that the value is valid
+        /// Trusts that the value is valid, will throw if no value
         /// </summary>
         /// <returns></returns>
         public TValue UnWrap()
@@ -57,7 +53,7 @@ namespace ResultMonad
         }
 
         /// <summary>
-        /// Functionally the same as UnWrap, but will throw if there is an error.
+        /// Functionally the same as UnWrap, but will throw with user defined message
         /// </summary>
         /// <param name="errorMessage"></param>
         /// <returns></returns>
@@ -66,7 +62,7 @@ namespace ResultMonad
         {
             return Value.Match(
                 value => value,
-                err => throw new Exception(errorMessage));
+                err => throw new ResultNoValueException(errorMessage));
         }
 
         public override string ToString()

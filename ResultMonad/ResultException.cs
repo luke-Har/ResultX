@@ -9,5 +9,6 @@ namespace ResultMonad
     public class ResultNoValueException : Exception
     {
         public ResultNoValueException() : base("A value was attempted to be accessed where the Result contains an error") { }
+        public ResultNoValueException(string errorMessage) : base(errorMessage) { }
     }
 }
