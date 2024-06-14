@@ -24,3 +24,15 @@ var myValue = result.Match(
 		value => value,
 		err => Foo.Empty);
 ```
+
+You could also execute arbitrary code with no return:
+```csharp
+var result = SomethingThatCouldError();
+result.Match(
+	(value) => {
+		DoSomething();
+	},
+	(err) => {
+		DoSomethingElse();
+	});
+```
