@@ -36,3 +36,11 @@ result.Match(
 		DoSomethingElse();
 	});
 ```
+
+If you know that the result contains a value or you're just lazy, you can unwrap or expect the result:
+```csharp
+var result = SomethingThatCouldError();
+var myValue = result.UnWrap(); //Will throw a generic error if no value
+///// or
+var myValue = result.Expect("foo should have a value here"); //Will throw an error with message if no value
+```
