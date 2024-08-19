@@ -69,7 +69,8 @@ namespace ResultMonad
         {
             return Value.Match(value => value.ToString(), err => err.ToString())!;
         }
-
+        public static implicit operator Result<TValue, TError>(TError error) => Result<TValue, TError>.Err(error);
+        public static implicit operator Result<TValue, TError>(TValue value) => Result<TValue, TError>.Ok(value);
         public static Result<TValue, TError> Ok(TValue value)
         {
             return new Result<TValue, TError>(value);
