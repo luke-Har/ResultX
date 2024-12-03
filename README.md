@@ -10,10 +10,10 @@ public enum FooError
 
 public Result<Foo, FooError> SomethingThatCouldError()
 {
-	if(foo.bar != desiredValue) return Result<Foo,FooError>.Err(FooError.PotentialError);
-	if(foo.name != name) return Result<Foo,FooError>.Err(FooError.AnotherPotentialError);
+	if(foo.bar != desiredValue) return FooError.PotentialError; //error enum is cast implicitly
+	if(foo.name != name) return FooError.AnotherPotentialError;
 
-	return Result<Foo,FooError>.Ok(foo);
+	return foo; //value is cast implicitly
 }
 ```
 
